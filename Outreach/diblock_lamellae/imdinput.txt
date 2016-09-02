@@ -1,0 +1,81 @@
+# Bead-spring polymer simulation with small-molecule diffusion - lj
+# Diblock Copolymer in lamellae phase
+# FENE potential repulsive all sites, with interactive temperature
+
+#Initialization
+units lj
+atom_style 	molecular
+read_restart	diblock.restart.20000000
+group		poly type 1 2
+
+shell	       echo 1.0 > Tempfile.txt
+shell	       echo 1.0 > Bondfile.txt
+
+variable       myTempStr file Tempfile.txt
+variable       myTemp equal v_myTempStr
+
+variable       myBondStr file Bondfile.txt
+variable       myBond equal v_myBondStr
+
+neighbor	1.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+#Bond force
+bond_style	fene
+bond_coeff	1 30.0 1.5 1.0 1.0
+bond_coeff	2 30.0 1.5 1.0 1.0
+special_bonds	fene    
+
+#Bead interaction force
+pair_style	lj/cut 1.12246
+pair_modify	shift yes
+pair_coeff      1 1 1.0 1.0
+pair_coeff      1 2 6.1 1.0
+pair_coeff      2 2 1.0 1.0
+
+# set the parameters here
+fix 1 all nve
+fix 3 all langevin v_myTemp 1.0 1.0 39253
+
+thermo_style 	custom step temp vol press ke pe ebond eimp evdwl ecoul elong
+thermo		100                        
+timestep	0.001
+
+
+run 10000
+
+unfix 1
+
+fix 4 all nve
+
+# set Interactive Molecular Dynamics
+
+fix comm all imd 5678 trate 5 unwrap off #fscale #10.0
+
+reset_timestep 	0
+
+# change the 8000 to change how often to save the positions of the atoms
+#dump 		1 all custom 500 position_imd.lammpstrj id type xs ys zs ix iy iz
+
+# how often to output thermodynamic data
+
+# how often to outout restart files and their names
+#restart       5000000 restartimd1 restartimd2
+
+label          loop2here
+
+# specifies the run length in timesteps
+run            2000
+shell          head -n 2 Temp.txt | tail -n 1 >> Tempfile.txt
+shell          head -n 2 Bond.txt | tail -n 1 >> Bondfile.txt
+next           myTempStr
+next           myBondStr
+if "${myBond} <= 0" then "jump imdinput.txt nobonds"
+jump           imdinput.txt loop2here
+#undump 1
+label          nobonds
+bond_style none
+run            2000000
+shell          head -n 2 Temp.txt | tail -n 1 >> Tempfile.txt
+next           myTempStr
+jump           imdinput.txt nobonds

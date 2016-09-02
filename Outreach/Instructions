@@ -1,0 +1,19 @@
+Connect everything, novint usb goes through the hub
+Open a Terminal window, 
+cd Desktop/Outreach
+./falcon_calib.sh
+follow instructions to calibrate
+Open a new Terminal window,
+cd Desktop/Outreach/Nbead160_twostage
+mpiexec -np 4 lammps-daily < imdinput.txt
+Open a new Terminal window,
+cd Desktop/Outreach/Nbead160_twostage
+vmd
+in VMD Main window choose File then Load Visualization State then outreach160.vmd
+in Terminal window (vmd one) 
+play imd.tcl
+play falcon.tcl
+Make 3D: in VMD Main window choose Display then Stereo then RowInterleaved
+To change temp or break bonds, open the Temp.txt and Bond.txt files in NBead160 folder and change numbers and save (changing Bond to 0 means you will have to restart to get the bonds back--control-C in the lammps Terminal window and play imd.tcl in the vmd Terminal window)
+If the falcon stops responding: go to VMD Main window and choose Graphics then Tools then Delete tool, then go to falcon window, control-C and input the falcon starting command again (press up arrow to find the last command) and follow directions, then go to vmd Terminal window and enter play falcon.tcl
+

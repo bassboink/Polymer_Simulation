@@ -1,0 +1,3 @@
+cd Documents/Outreach/Nbead160tagged
+
+./lammps < imdinput.txt

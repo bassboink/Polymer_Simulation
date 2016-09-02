@@ -1,0 +1,42 @@
+# Diblock Copolymer (PS-PEO) without Lithium ions
+# Author: LMH 180210, modified for Dough 210912
+# Modified: YMS 03/2013
+
+###Initialization
+units		lj
+atom_style	molecular
+read_data	input_30tap.lammps
+group		poly type 1 2
+
+###Force Calculation 1
+bond_style	fene
+bond_coeff	1 30.0 1.5 1.0 1.0
+bond_coeff	2 30.0 1.5 1.0 1.0 
+special_bonds	fene                # special_bonds fene is same as lj 0.0 1.0 1.0 (Later lj or coulombic potential will be turned off for 1-2 interactions because fene potential already contains lj potential in it.)
+
+neighbor	1.0 bin
+neigh_modify	every 1 delay 0 check yes
+
+thermo_style 	custom step temp vol press ke pe ebond eimp evdwl ecoul elong
+thermo		100                                       # Step interval to be shown.
+timestep	0.0115
+
+###Force calculation 2
+pair_style 	lj/cut 2.5         # Force between atoms on different polymers (1-3, 1-4 interactions, as well)
+pair_modify	shift yes
+pair_coeff      1 1 1.0 1.0
+pair_coeff      1 2 0.84 1.0
+pair_coeff      2 2 1.0 1.0
+
+###Equilibration       #End setup of calculations to be done during equilibration 
+dump		dump2 all custom 10000 equil.lammpstrj id mol type xs ys zs ix iy iz vx vy vz
+dump_modify	dump2 append yes
+
+restart		10000000 diblock.restart         
+
+fix         fix3 all nvt temp 1.0 1.0 1.0
+fix 		temp all temp/rescale 1 0.0 1.0 0.05 1.0
+run		10000
+
+unfix		temp
+run		9990000
